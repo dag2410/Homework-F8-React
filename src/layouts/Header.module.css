@@ -1,0 +1,14 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px;
+}
+.headerLeft,
+.headerRight {
+  color: chocolate;
+}
+.headerRight {
+  display: flex;
+  gap: 40px;
+}

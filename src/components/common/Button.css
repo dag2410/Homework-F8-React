@@ -1,0 +1,12 @@
+.btn {
+  border: none;
+  width: 10%;
+  border-radius: 8px;
+  margin-top: 10px; 
+}
+
+.btn.btn-big {
+  background-color: #007bff;
+  color: #fff;
+  padding: 15px 30px;
+}
