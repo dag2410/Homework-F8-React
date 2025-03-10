@@ -1,27 +1,7 @@
-import { useState } from "react";
-import "./App.css";
-import Button from "./components/common/Button";
-import ProductList from "./components/ui/ProductList";
-import data from "./data";
-import Header from "./layouts/Header";
-function App() {
-  const [isGrid, setIsGrid] = useState(false);
-  return (
-    <>
-      <Header />
-      <ProductList data={data} isGrid={isGrid} />
+import Day40 from "./Homework-React/Day-40/Day-40";
 
-      <Button
-        variant="grid"
-        size="big"
-        onClick={() => {
-          setIsGrid(!isGrid);
-        }}
-      >
-        {isGrid ? "List" : "Grid"}
-      </Button>
-    </>
-  );
+function App() {
+  return <>{Day40()}</>;
 }
 
 export default App;
