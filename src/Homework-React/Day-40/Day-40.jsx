@@ -1,13 +1,47 @@
 import { useEffect, useState } from "react";
 import "../Day-40/Day-40.css";
 
+let timerId;
 function Day40() {
+  //1
+  const params = new URLSearchParams(location.search);
+
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(Number(params.get("page")) || 1);
   const [limit, setLimit] = useState(25);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(params.get("p") || "");
+  const [searchResult, setSearchResult] = useState([]);
+
+  useEffect(() => {
+    params.set("page", currentPage);
+    history.replaceState(null, null, `?${params}`);
+  }, [currentPage, params]);
+
+  const isSearch = searchInput.length >= 3;
+
+  //2
+  useEffect(() => {
+    if (isSearch) {
+      // /Debounce search
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        fetch(`https://dummyjson.com/posts/search?q=${searchInput}`)
+          .then((res) => {
+            return res.json();
+          })
+          .then((data) => {
+            setSearchResult(data.posts);
+            params.set("q", searchInput);
+            history.replaceState(null, null, `?${params}`);
+          });
+      }, 500);
+    } else {
+      params.delete("q");
+      history.replaceState(null, null, `?${params}`);
+    }
+  }, [searchInput, isSearch, params]);
 
   useEffect(() => {
     const skip = (currentPage - 1) * limit;
@@ -16,7 +50,6 @@ function Day40() {
       .then((data) => {
         setLoading(false);
         setPosts(data.posts);
-        console.log(data.posts);
         setTotalPage(Math.ceil(data.total / limit));
       });
   }, [currentPage, limit]);
@@ -33,7 +66,7 @@ function Day40() {
             setCurrentPage(page);
           }}
         >
-          {i + 1}
+          {page}
         </button>
       );
     }
@@ -41,13 +74,12 @@ function Day40() {
     return result.slice(currentPage - 1, currentPage + 2);
   };
 
+  //3
   const filteredPosts = () => {
-    const search = searchInput.trim().toLowerCase();
-    if (search.length < 3) {
-      return posts;
-    } else {
-      return posts.filter((post) => post.title.toLowerCase().includes(search));
+    if (isSearch) {
+      return searchResult;
     }
+    return posts;
   };
 
   return (
@@ -59,6 +91,8 @@ function Day40() {
           type="text"
           className="search-input"
           id="search-input"
+          //4
+          value={searchInput}
           onChange={(e) => {
             setSearchInput(e.target.value);
           }}
@@ -72,17 +106,18 @@ function Day40() {
           <p>Đang tải dữ liệu...</p>
         </div>
       )}
+
       {/* List of Posts */}
       <ul className="post-list">
-        {filteredPosts().length > 0 ? (
+        {filteredPosts().length ? (
           filteredPosts().map((p) => (
             <li className="post-item" key={p.id}>
               <h2>{p.title}</h2>
               <p>{p.body}</p>
               <div className="post-meta">
-                <span className="views">👀 {p.views}</span>
-                <span className="likes">👍{p.reactions.likes}</span>
-                <span className="dislikes">👎 {p.reactions.dislikes}</span>
+                <span className="views">👀 {p.views.toLocaleString("vi-VN")}</span>
+                <span className="likes">👍{p.reactions.likes.toLocaleString("vi-VN")}</span>
+                <span className="dislikes">👎 {p.reactions.dislikes.toLocaleString("vi-VN")}</span>
               </div>
               <div className="tags">
                 <span className="tag">{p.tags[0]}</span>
@@ -91,12 +126,15 @@ function Day40() {
               </div>
             </li>
           ))
+        ) : isSearch ? (
+          <p className="no-results">Không tìm thấy bài viết nào.</p>
         ) : (
-          <p className="no-results">Không có bài viết nào.</p>
+          !loading && <p className="no-results">Không có bài viết nào.</p>
         )}
       </ul>
+
       {/* Pagination (Phân trang)*/}
-      {!searchInput && (
+      {!isSearch && (
         <div className="pagination-container ">
           <div className="records-per-page">
             <label htmlFor="records">Hiển thị:</label>
